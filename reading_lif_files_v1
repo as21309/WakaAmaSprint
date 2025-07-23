@@ -1,0 +1,12 @@
+import csv
+with open('DTP3\\193-Semi-02.lif', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',')
+    valuelist = []
+    for row in spamreader:
+        valuelist.append(row)
+
+
+
+
+    # for row in spamreader:
+    #     print(', '.join(row))

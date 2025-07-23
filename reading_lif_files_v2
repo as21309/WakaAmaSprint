@@ -1,0 +1,20 @@
+import csv
+
+
+with open('DTP3\\193-Semi-02.lif', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',')
+    pointscheme = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1}
+    valuelist = []
+    for row in spamreader:
+        valuelist.append(row)
+    for entry in valuelist:
+        if entry != valuelist[0]:
+            position = entry[0]
+            print(position)
+            association = entry[5]
+            print(association)
+
+
+
+    # for row in spamreader:
+    #     print(', '.join(row))
