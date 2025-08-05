@@ -88,7 +88,7 @@ if __name__ == "__main__":
     window.columnconfigure(0, weight=1)
     window.rowconfigure(0, weight=1)
 
-    # Instantiate the Menu class to display the menu
+    # Call the Menu class to create the main menu
     Menu()
 
     # Start the Tkinter event loop
