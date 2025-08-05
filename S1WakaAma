@@ -1,0 +1,10 @@
+import os
+from tkinter import *
+from tkinter import filedialog
+
+# Basic constants for appearance that can be used over and over.
+bg = "#FAFFFD"
+heading_font = ("Yu Gothic UI", "22", "bold")
+heading_fg = "#315944"
+para_font = ("Yu Gothic UI Semibold", "12")
+para_fg = "#284A29"
