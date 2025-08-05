@@ -8,3 +8,29 @@ heading_font = ("Yu Gothic UI", "22", "bold")
 heading_fg = "#315944"
 para_font = ("Yu Gothic UI Semibold", "12")
 para_fg = "#284A29"
+
+class Menu:
+    def __init__(self):
+        self.frame = Frame(bg=bg)
+        self.frame.grid(sticky="nsew")
+        self.frame.rowconfigure(0, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+
+        self.menu_heading = Label(self.frame, text="Waka Ama Ranking Finder", font=heading_font, bg=bg, fg=heading_fg)
+        self.menu_heading.grid(row=0, pady=(30, 0))
+
+        self.menu_desc = Label(self.frame,
+                               text="Welcome! Please select a folder to begin.",
+                               font=para_font,
+                               wrap=550, width=80, justify="left", bg=bg, pady=10, fg=para_fg)
+        self.menu_desc.grid(row=1)
+
+if __name__ == "__main__":
+    window = Tk()
+    window.title("Waka Ama Ranking Finder")
+    window.geometry("700x300")
+    window.configure(bg=bg)
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(0, weight=1)
+    Menu()
+    window.mainloop()
