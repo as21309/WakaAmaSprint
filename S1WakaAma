@@ -25,6 +25,23 @@ class Menu:
                                wrap=550, width=80, justify="left", bg=bg, pady=10, fg=para_fg)
         self.menu_desc.grid(row=1)
 
+        self.folder_path = None
+        self.folder_button = Button(self.frame, text="Select Folder", font=para_font, bg="#FFE4BA", bd=0,
+                                   fg=para_fg, command=self.select_folder)
+        self.folder_button.grid(row=2, pady=20)
+
+        self.selected_label = Label(self.frame, text="", font=para_font, fg="red", bg=bg)
+        self.selected_label.grid(row=3)
+
+    def select_folder(self):
+        folder = filedialog.askdirectory()
+        if folder:
+            self.folder_path = folder
+            self.selected_label.config(text=f"Selected: {folder}", fg=para_fg)
+        else:
+            self.folder_path = None
+            self.selected_label.config(text="No folder selected.", fg="red")
+
 if __name__ == "__main__":
     window = Tk()
     window.title("Waka Ama Ranking Finder")
