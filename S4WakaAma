@@ -1,0 +1,391 @@
+import tkinter.messagebox
+from pathlib import Path
+from tkinter import *
+from tkinter import filedialog
+from PIL import Image, ImageTk
+import os
+
+
+# heading font
+heading_font = ("Yu Gothic UI", "22", "bold")
+heading_fg = "#315944"
+# paragraph and button font
+para_font = ("Yu Gothic UI Semibold", "12")
+para_fg = "#284A29"
+# background colour
+bg = "#FAFFFD"
+# button colours
+outline_clr = "#284A29"
+click_clr = "#DAFFC7"
+
+default_points_dict = {
+    "1": 8, "2": 7, "3": 6, "4": 5, "5": 4, "6": 3, "7": 2, "8": 1,
+}
+
+class PointsDialog(Toplevel):
+    def __init__(self, parent, points_dict):
+        super().__init__(parent)
+        self.title("Edit Points Scheme")
+        self.resizable(False, False)
+        self.points_dict = points_dict.copy()
+        self.entries = {}
+        Label(self, text="Place", font=para_font).grid(row=0, column=0, padx=10, pady=5)
+        Label(self, text="Points", font=para_font).grid(row=0, column=1, padx=10, pady=5)
+        for idx, place in enumerate(sorted(self.points_dict, key=lambda x: int(x))):
+            Label(self, text=place, font=para_font).grid(row=idx+1, column=0, padx=10)
+            var = StringVar(value=str(self.points_dict[place]))
+            entry = Entry(self, textvariable=var, width=5, font=para_font)
+            entry.grid(row=idx+1, column=1, padx=10)
+            self.entries[place] = var
+        Button(self, text="Save", font=para_font, command=self.save).grid(row=len(self.points_dict)+1, column=0, columnspan=2, pady=10)
+        self.result = None
+
+    def save(self):
+        try:
+            new_dict = {}
+            for place, var in self.entries.items():
+                val = int(var.get())
+                new_dict[place] = val
+            self.result = new_dict
+            self.destroy()
+        except ValueError:
+            tkinter.messagebox.showerror("Invalid Input", "Please enter integer values for all points.")
+
+#######################################################################################################################
+class Menu:  # menu screen that also error checks input
+    def __init__(self):
+        self.points_dict = default_points_dict.copy()
+
+        # create frames
+        self.frame = Frame(bg=bg)
+        self.frame.grid(sticky="nsew")
+        self.frame.rowconfigure(2, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+        
+        self.error_frame = Frame(bg=bg)
+        self.error_frame.grid(row=3, column=0, pady=(5, 0))
+
+        self.button_frame = Frame(bg=bg)
+        self.button_frame.grid(row=4, column=0, pady=(5, 25))
+
+        # add text
+        self.menu_heading = Label(self.frame, text="Waka Ama ranking finder", font=heading_font, bg=bg, fg=heading_fg)
+        self.menu_heading.grid(row=0, pady=(30, 0))
+
+        self.menu_desc = Label(self.frame,
+                               text="Welcome to the unofficial Waka Ama ranking finder! Use this program to "
+                                    "check the results of a previous competition by year.",
+                               font=para_font,
+                               wrap=550, width=80, justify="left", bg=bg, pady=10, fg=para_fg)
+        self.menu_desc.grid(row=1)
+
+        # add image from local file 
+        img_path = os.path.join(os.path.dirname(__file__), "wakatest.jpg")
+        if os.path.exists(img_path):
+            self.image = Image.open(img_path)
+            self.image_copy = self.image.copy()
+            self.img = ImageTk.PhotoImage(self.image)
+            self.img_bg = Label(self.frame, image=self.img)
+            self.img_bg.grid(sticky="nsew", padx=50)
+            self.img_bg.bind("<Configure>", self.resize_img)
+
+        # add entry field for years
+        self.year_var = StringVar()
+        self.year_var.set("")
+        self.year_label = Label(self.button_frame, text="Enter year:", font=para_font, bg=bg, fg=para_fg)
+        self.year_entry = Entry(self.button_frame, textvariable=self.year_var, font=("Yu Gothic UI Semibold", "21"),
+                                fg=para_fg, width=5, bg=bg, highlightbackground=outline_clr, highlightthickness=1)
+        self.year_label.grid(row=0, column=0)
+        self.year_entry.grid(row=0, column=1)
+
+        # add folder selection
+        self.folder_path = None
+        self.folder_button = Button(self.button_frame, text="Select Folder", font=para_font, bg="#FFE4BA", bd=0,
+                                   highlightthickness=5, fg=para_fg, activebackground=click_clr,
+                                   activeforeground=para_fg, command=self.select_folder)
+        self.folder_button.grid(row=0, column=2, padx=10)
+
+        # Set Points button
+        self.points_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.points_border.grid(row=0, column=5, padx=10)
+        self.points_button = Button(self.points_border, text="Set Points", font=para_font, bg="#FFD6BA", bd=0,
+                                   highlightthickness=5, fg=para_fg, activebackground=click_clr,
+                                   activeforeground=para_fg, command=self.edit_points)
+        self.points_button.grid(row=1, column=5)
+
+        # give buttons a consistent black border
+        self.find_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.find_border.grid(row=0, column=3)
+
+        self.help_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.help_border.grid(row=0, column=4, padx=50)
+
+        # create buttons
+        self.find_button = Button(self.find_border, text="Find", font=para_font, bg="#BAFFD3", bd=0,
+                                  highlightthickness=5, command=self.year_check, fg=para_fg, activebackground=click_clr,
+                                  activeforeground=para_fg)
+        self.find_button.grid(row=1, column=3)
+
+        self.help_button = Button(self.help_border, text="Help/information", font=para_font, bg="#C9FFDB", bd=0,
+                                  highlightthickness=5, fg=para_fg, activebackground=click_clr,
+                                  command=lambda: [self.frame.destroy(), self.button_frame.destroy(),
+                                                   self.error_frame.destroy(), Info()], activeforeground=para_fg)
+        self.help_button.grid(row=1, column=4)
+
+        # add error label
+        self.error_label = Label(self.error_frame, text="", font=para_font, fg="red", bg=bg)
+        self.error_label.grid(row=0)
+
+    def edit_points(self):
+        dialog = PointsDialog(self.frame.master, self.points_dict)
+        self.frame.wait_window(dialog)
+        if dialog.result:
+            self.points_dict = dialog.result
+
+    def resize_img(self, event):  # resize image based on window size
+        new_width = event.width
+        new_height = event.height
+        self.image = self.image_copy.resize((new_width, new_height))
+        self.img = ImageTk.PhotoImage(self.image)
+        self.img_bg.configure(image=self.img)
+
+    def select_folder(self):
+        folder = filedialog.askdirectory()
+        if folder:
+            self.folder_path = folder
+            self.error_label.config(text=f"Selected: {folder}", fg=para_fg)
+        else:
+            self.folder_path = None
+            self.error_label.config(text="No folder selected.", fg="red")
+
+    def year_check(self):  # error check year input
+        try:
+            year_input = self.year_var.get()
+            year = int(year_input)
+            if 2017 <= year <= 2030:
+                self.error_label.config(text="")
+                if self.folder_path:
+                    # Check for year folder before proceeding
+                    year_folder = None
+                    for entry in os.listdir(self.folder_path):
+                        if str(year) in entry and os.path.isdir(os.path.join(self.folder_path, entry)):
+                            year_folder = os.path.join(self.folder_path, entry)
+                            break
+                    if not year_folder:
+                        self.error_label.config(text=f"No folder found for year {year}. Select parent folder again.")
+                        return
+                    # Only proceed if year folder exists
+                    self.button_frame.destroy()
+                    self.frame.destroy()
+                    self.error_frame.destroy()
+                    Ranker(self.folder_path, year, self.points_dict)
+                else:
+                    self.error_label.config(text="Please select a folder first.")
+            else:
+                self.error_label.config(text="Please enter a year between 2017 and 2030.")
+        except ValueError:
+            self.error_label.config(text="Please enter a whole number.")
+
+#######################################################################################################################
+class Ranker:
+    def __init__(self, folder_path, year, points_dict):  # ranking calculator screen that calculates points
+        self.points_dict = points_dict
+
+        self.frame = Frame(bg=bg)
+        self.frame.grid(sticky="nsew")
+        self.frame.rowconfigure(2, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+
+        self.label_frame = Frame(bg=bg)
+        self.label_frame.grid(pady=5)
+
+        self.button_frame = Frame(bg=bg)
+        self.button_frame.grid(pady=(5, 25))
+
+        self.ranker_heading = Label(self.frame, text=f"Ranking Calculator - {year}", font=heading_font,
+                                    bg=bg, fg=heading_fg)
+        self.ranker_heading.grid(row=0, pady=(20, 0))
+
+        self.ranker_desc = Label(self.frame, font=para_font, wrap=550, width=80,
+                                 justify="left", bg=bg, fg=para_fg)
+        self.ranker_desc.grid(row=1, pady=10)
+
+        self.scrollbar = Scrollbar(self.frame, width=21)
+        self.scrollbar.grid(row=2, column=1, sticky="ns", padx=(0, 50))
+
+        self.results = Listbox(self.frame, bg="white", width=60, height=11, font=para_font,
+                               yscrollcommand=self.scrollbar.set, fg=para_fg)
+
+        self.csv_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.csv_border.grid(row=0, column=0, padx=50)
+
+        self.return_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.return_border.grid(row=0, column=1, padx=50)
+
+        self.csv_button = Button(self.csv_border, text="Export to csv", font=para_font, bg="#BAFFD3", bd=0,
+                                 highlightthickness=5, activebackground=click_clr, activeforeground=para_fg,
+                                 command=lambda: self.export_csv(year), fg=para_fg, state=DISABLED)
+        self.csv_button.grid(row=0, column=0)
+        self.return_button = Button(self.return_border, text="Return", fg=para_fg,
+                                    font=para_font, bg="#C9FFDB", bd=0, highlightthickness=5,
+                                    activebackground=click_clr, activeforeground=para_fg,
+                                    command=lambda: [self.frame.destroy(), self.button_frame.destroy(),
+                                                     self.label_frame.destroy(), Menu()])
+        self.return_button.grid(row=0, column=1)
+
+        self.label = Label(self.label_frame, text="", font=para_font, fg=para_fg, bg=bg)
+        self.label.grid(row=0)
+
+        self.frame.update()
+        try:
+            self.folder_reader(folder_path, year)
+        except TclError:
+            return
+
+    def points_calculator(self, place, name, dictionary):
+        if name not in dictionary:
+            dictionary[name] = 0
+        if place in ("DNS", "DQ", "Disqualified"):
+            dictionary[name] += 0
+        else:
+            dictionary[name] += self.points_dict.get(place, 1)
+        return dictionary
+
+    def file_reader(self, file_name, file_path, dictionary):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                contents = f.read().strip().split("\n")
+                for record in contents[1:]:
+                    line = record.split(",")
+                    if len(line) > 5 and line[0] != "" and line[5] != "":
+                        self.points_calculator(line[0], line[5], dictionary)
+        except Exception as e:
+            self.label.config(text=f"Failed to read {file_name}: {e}", fg="red")
+            self.frame.update()
+
+    def ranking_results(self, dictionary):
+        refined_ranking = dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
+        self.results.delete(0, END)
+        self.results.insert(0, "Place, Association, Points")
+        index = 1
+        for key, value in refined_ranking.items():
+            self.results.insert(index, f"{index}, {key}, {value}")
+            index += 1
+
+    def folder_reader(self, folder_path, year):
+        final_files_dict = {}
+        ranking_dict = {}
+        try:
+            # Look for year folder inside selected folder
+            year_folder = None
+            for entry in os.listdir(folder_path):
+                if str(year) in entry and os.path.isdir(os.path.join(folder_path, entry)):
+                    year_folder = os.path.join(folder_path, entry)
+                    break
+            if not year_folder:
+                self.ranker_desc.config(text=f"No folder found for year {year}.")
+                return
+
+            files = os.listdir(year_folder)
+            for file in files:
+                if "final" in file.lower() and file.lower().endswith(".lif"):
+                    final_files_dict[file] = os.path.join(year_folder, file)
+            self.ranker_desc.config(text=f"Below is a preview of the rankings. To download the file as a .csv file,"
+                                         f" click 'Export to csv'. Number of items in folder: {len(files)}. Number "
+                                         f"of final files: {len(final_files_dict)}")
+            self.results.grid(row=2, column=0, sticky="nsew", padx=(50, 0))
+            self.results.insert(0, "Loading, please wait...")
+            self.scrollbar.config(command=self.results.yview)
+            self.frame.update()
+            for key, value in final_files_dict.items():
+                self.file_reader(key, value, ranking_dict)
+            self.ranking_results(ranking_dict)
+            self.label.config(text="")
+            self.csv_button.config(state=NORMAL)
+        except Exception as e:
+            self.label.config(text=f"Failed to read folder: {e}", fg="red")
+
+    def export_csv(self, year):
+        try:
+            downloads = str(Path.home() / "Downloads")
+            file_name = f"WakaAmaRanking{year}"
+            csv = filedialog.asksaveasfile(initialdir=downloads, filetypes=[("csv file", "*.csv")], mode="w",
+                                           initialfile=file_name, defaultextension=".csv")
+            if csv is None:
+                return
+            csv.write("\n".join(self.results.get(0, END)))
+            csv.close()
+        except PermissionError:
+            tkinter.messagebox.showerror(title="Override issue", message="Please close the original file before overriding it.")
+
+#######################################################################################################################
+class Info:  # information and tutorial screen
+    def __init__(self):
+        self.frame = Frame(bg=bg, padx=50)
+        self.frame.grid(sticky="nsew")
+        self.frame.rowconfigure(1, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+
+        self.button_frame = Frame(bg=bg)
+        self.button_frame.grid(sticky="nsew", pady=(5, 10))
+        self.button_frame.rowconfigure(0, weight=1)
+        self.button_frame.columnconfigure(0, weight=1)
+
+        self.info_heading = Label(self.frame, text="Help/Information", font=heading_font, bg=bg, fg=heading_fg)
+        self.info_heading.grid(row=0, pady=(30, 15))
+
+        info_1 = "This program reads Waka Ama's competition data from your local computer, calculates the total points earned by each " \
+                 "association, and ranks them. Place your year folder somewhere on your computer, and select it using the 'Select Folder' button.\n\n" \
+                 "How to use the program:\nAt the Menu screen, type in the year that you want " \
+                 "the program to analyse. The earliest year is 2017 and latest year is 2030. The program will check " \
+                 "whether that year exists as a folder, then produces the results. You will have the option to " \
+                 "download the results as a .csv file. The .csv file downloaded will be named WakaAmaRanking{year}," \
+                 " where {year} is the year that you selected." \
+                 "\n\nAdding your own data:\nTo add your year folder, just make sure your files are in .lif format and contain 'Final' in the filename.\n"
+
+        info_2 = "\nRules:\nPlease name your year folder 'WakaNats{year}' (without quotations and curly brackets), " \
+                 "where year is the year of your folder. Example: WakaNats2019. If you do not follow this format, " \
+                 "the program will not detect your folder. Similarly, files of the final games must have 'Final'" \
+                 " in its title or else the program will not find it. Please do not store folders inside the " \
+                 "year folder. Make sure your year folder is unzipped." \
+                 "\n\nClicking the 'Return' button takes you back to the Menu.\n\nTo close the program, " \
+                 "press the x at the top right of the window.\n\nHave fun! :)\n\nCover image by " \
+                 "PublicDomainPictures on Pixabay."
+
+        self.scrollbar = Scrollbar(self.frame, width=21)
+        self.scrollbar.grid(row=1, column=1, sticky="nsew")
+
+        self.info_window = Text(self.frame, font=para_font, width=60, height=13, bg="white", wrap=WORD, padx=20,
+                                pady=20,
+                                yscrollcommand=self.scrollbar.set, fg=para_fg)
+        self.info_window.grid(row=1, sticky="nsew")
+
+        self.info_window.insert(END, info_1)
+        self.info_window.insert(END, info_2)
+        self.info_window.config(state=DISABLED)
+        self.scrollbar.config(command=self.info_window.yview)
+
+        self.return_border = Frame(self.button_frame, highlightbackground=outline_clr, highlightthickness=1, bd=1)
+        self.return_border.grid(row=0, pady=(20, 10))
+
+        self.return_button = Button(self.return_border, text="Return", font=para_font, bg="#BAFFD3", bd=0,
+                                    highlightthickness=5, fg=para_fg, activebackground=click_clr,
+                                    activeforeground=para_fg,
+                                    command=lambda: [self.frame.destroy(), self.button_frame.destroy(), Menu()])
+        self.return_button.grid(row=0)
+
+#######################################################################################################################
+
+if __name__ == "__main__":
+    window = Tk()
+    window.title("Waka Ama Ranking Finder")
+    window.geometry("700x500")
+    window.minsize(750, 550)
+    window.configure(bg=bg)
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(0, weight=1)
+    Menu()
+    window.mainloop()
+
+# End of the code
+#######################################################################################################################
