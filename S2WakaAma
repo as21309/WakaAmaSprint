@@ -1,0 +1,97 @@
+from tkinter import *
+from tkinter import filedialog
+import os
+
+# Basic constants for appearance
+bg = "#FAFFFD"
+heading_font = ("Yu Gothic UI", "22", "bold")
+heading_fg = "#315944"
+para_font = ("Yu Gothic UI Semibold", "12")
+para_fg = "#284A29"
+
+class Menu:
+    def __init__(self):
+        self.frame = Frame(bg=bg)
+        self.frame.grid(sticky="nsew")
+        self.frame.rowconfigure(0, weight=1)
+        self.frame.columnconfigure(0, weight=1)
+
+        self.menu_heading = Label(self.frame, text="Waka Ama Ranking Finder", font=heading_font, bg=bg, fg=heading_fg)
+        self.menu_heading.grid(row=0, pady=(30, 0))
+
+        self.menu_desc = Label(self.frame,
+                               text="Welcome! Please select a folder and enter a year to begin.",
+                               font=para_font,
+                               wrap=550, width=80, justify="left", bg=bg, pady=10, fg=para_fg)
+        self.menu_desc.grid(row=1)
+
+        # Horizontal controls frame
+        self.controls_frame = Frame(self.frame, bg=bg)
+        self.controls_frame.grid(row=2, pady=20)
+
+        # Year entry
+        self.year_label = Label(self.controls_frame, text="Enter year:", font=para_font, bg=bg, fg=para_fg)
+        self.year_label.grid(row=0, column=0, padx=(0, 5))
+        self.year_var = StringVar()
+        self.year_entry = Entry(self.controls_frame, textvariable=self.year_var, font=("Yu Gothic UI Semibold", "21"),
+                                fg=para_fg, width=8, bg=bg)
+        self.year_entry.grid(row=0, column=1, padx=(0, 10))
+
+        # Folder selection
+        self.folder_path = None
+        self.folder_button = Button(self.controls_frame, text="Select Folder", font=para_font, bg="#FFE4BA", bd=0,
+                                   fg=para_fg, command=self.select_folder)
+        self.folder_button.grid(row=0, column=2, padx=(0, 10))
+
+        # Button to check year and folder
+        self.check_button = Button(self.controls_frame, text="Check", font=para_font, bg="#BAFFD3", bd=0,
+                                   fg=para_fg, command=self.year_and_folder_check)
+        self.check_button.grid(row=0, column=3)
+
+        # Label to display folder and error messages
+        self.selected_label = Label(self.frame, text="", font=para_font, fg="red", bg=bg)
+        self.selected_label.grid(row=3)
+
+    def select_folder(self):
+        folder = filedialog.askdirectory()
+        if folder:
+            self.folder_path = folder
+            self.selected_label.config(text=f"Selected: {folder}", fg=para_fg)
+        else:
+            self.folder_path = None
+            self.selected_label.config(text="No folder selected.", fg="red")
+
+    def year_and_folder_check(self):
+        year_input = self.year_var.get()
+        if not self.folder_path:
+            self.selected_label.config(text="Please select a folder first.", fg="red")
+            return
+        try:
+            year = int(year_input)
+            if not (2017 <= year <= 2030):
+                self.selected_label.config(text="Please enter a year between 2017 and 2030.", fg="red")
+                return
+        except ValueError:
+            self.selected_label.config(text="Please enter a whole number for the year.", fg="red")
+            return
+
+        # Check for year folder inside selected folder
+        found = False
+        for entry in os.listdir(self.folder_path):
+            if str(year) in entry and os.path.isdir(os.path.join(self.folder_path, entry)):
+                found = True
+                break
+        if found:
+            self.selected_label.config(text=f"Year {year} accepted and folder found.", fg=para_fg)
+        else:
+            self.selected_label.config(text=f"No folder found for year {year}.", fg="red")
+
+if __name__ == "__main__":
+    window = Tk()
+    window.title("Waka Ama Ranking Finder")
+    window.geometry("700x350")
+    window.configure(bg=bg)
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(0, weight=1)
+    Menu()
+    window.mainloop()
