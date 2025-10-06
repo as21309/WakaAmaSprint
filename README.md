@@ -4,17 +4,7 @@ A desktop application for calculating and displaying Waka Ama competition rankin
 
 ---
 
-## Features
 
-- **Dark Mode:** Modern, eye-friendly color palette throughout the app.
-- **Leaderboard Table:** Results are displayed in a scrollable, sortable table with columns for Place, Association, and Points.
-- **Custom Points Scheme:** Easily edit the points awarded for each placing.
-- **CSV Export:** Export the leaderboard to a CSV file for sharing or further analysis.
-- **Help/Information Screen:** Built-in instructions and rules for using the program.
-- **Robust Error Handling:** Clear feedback for invalid input and file issues.
-- **Local Data Processing:** All data is processed locally for privacy.
-
----
 
 ## How to Use
 
@@ -41,7 +31,7 @@ A desktop application for calculating and displaying Waka Ama competition rankin
 
 ---
 
-## Screenshots
+## Output Preview
 
 ![Leaderboard Table Example](image_2025-10-06_105756679.png)
 
